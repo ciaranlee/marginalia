@@ -5,7 +5,7 @@ module Marginalia
     mattr_accessor :components, :lines_to_ignore
 
     def self.update!(controller = nil)
-      @controller = controller
+      self.marginalia_controller = controller
     end
 
     def self.construct_comment
@@ -21,10 +21,18 @@ module Marginalia
     end
 
     def self.clear!
-      @controller = nil
+      self.marginalia_controller = nil
     end
 
     private
+      def self.marginalia_controller=(controller)
+        Thread.current[:marginalia_controller] = controller
+      end
+
+      def self.marginalia_controller
+        Thread.current[:marginalia_controller]
+      end
+
       def self.application
         if defined? Rails.application
           Marginalia.application_name ||= Rails.application.class.name.split("::").first
@@ -36,11 +44,11 @@ module Marginalia
       end
 
       def self.controller
-        @controller.controller_name if @controller.respond_to? :controller_name
+        marginalia_controller.controller_name if marginalia_controller.respond_to? :controller_name
       end
 
       def self.action
-        @controller.action_name if @controller.respond_to? :action_name
+        marginalia_controller.action_name if marginalia_controller.respond_to? :action_name
       end
 
       def self.line
